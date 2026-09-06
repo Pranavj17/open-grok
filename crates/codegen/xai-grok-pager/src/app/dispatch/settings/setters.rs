@@ -747,6 +747,15 @@ fn custom_model_draft_from_open(app: &AppView) -> Option<crate::settings::PagerL
         .map(|state| state.pager_snapshot.clone())
 }
 
+/// Reserve the next shared custom-models generation.
+///
+/// The wizard's save must run on the same counter as every other custom-model
+/// mutation, or its result would be dropped by the staleness guard in
+/// `TaskResult::CustomModelsUpdated`.
+pub(in crate::app::dispatch) fn begin_custom_models_mutation() -> u64 {
+    next_custom_models_generation()
+}
+
 pub(in crate::app::dispatch) fn set_custom_model_save(
     app: &mut AppView,
     save: bool,

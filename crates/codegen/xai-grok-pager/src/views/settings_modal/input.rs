@@ -458,6 +458,7 @@ fn toggle_dynamic_multi_select(
 pub(crate) fn custom_model_action_for_bool(key: SettingKey, new: bool) -> Option<Action> {
     match key {
         "custom_model_save" => Some(Action::SetCustomModelSave(new)),
+        "custom_provider_wizard" => Some(Action::SetCustomProviderWizard(new)),
         _ => None,
     }
 }

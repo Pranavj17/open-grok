@@ -72,7 +72,13 @@ Grok supports four API backends. Set `api_backend` in your `[model.*]` config to
 
 When you omit `api_backend`, Grok uses `chat_completions`.
 
-To send provider-specific authentication or version headers -- for example, Anthropic's `x-api-key` or Google's `x-goog-api-key` -- use `auth_scheme` or the `extra_headers` field described below. Grok sends those headers verbatim with every request to the endpoint.
+For Anthropic-style authentication, set `auth_scheme = "x_api_key"` on a
+`provider = "custom"` model instead of hand-writing headers; Open Grok then sends
+`x-api-key` plus `anthropic-version` itself. A `bearer` value (the default) sends
+`Authorization: Bearer <key>`. Google's native backend uses `x-goog-api-key`.
+To send any other provider-specific header, use the `extra_headers` field
+described below; those headers go out verbatim with every request to that
+endpoint.
 
 ---
 
@@ -101,7 +107,7 @@ Fill the draft fields, then turn on **Save custom model**:
 | Catalog key | Table name / catalog key (`[model.<key>]`), for example `zai:glm-special` or `my-ollama`. Letters, digits, `:`, `.`, `-`, and `_` only; no spaces or newlines. |
 | Model id | Wire model id sent to the API. |
 | Name | Optional display name in the picker. |
-| Provider | `(inherit)` (empty) or `zai`, `runinfra`, `gemini`, `wafer`, `kimi`, `fireworks`, `deepseek`, `meta`, `xai`, `opencode_go`, `openrouter`. |
+| Provider | `(inherit)` (empty) or `custom`, `zai`, `runinfra`, `gemini`, `wafer`, `kimi`, `fireworks`, `deepseek`, `meta`, `xai`, `opencode_go`, `openrouter`. `custom` means the base URL you typed is the whole identity of the endpoint; use the wizard below for it. |
 | Base URL | Optional OpenAI-compatible endpoint. Leave blank for Z AI, RunInfra, Google Gemini, Wafer, or OpenRouter to use that provider's default endpoint. |
 | Context window | Token window used for auto-compaction (`1000`–`4000000`; default `200000`). |
 | API backend | `chat_completions` (default), `responses`, or `messages`. |
@@ -112,7 +118,7 @@ either is missing, Open Grok shows a warning and does not write config.
 On success the draft fields clear, the new model appears in the list and
 the model picker, and Settings turns **Save custom model** back off.
 
-When you choose the Z AI provider and omit a base URL, Open Grok stores
+When you choose a provider and omit a base URL, Open Grok stores
 the GLM Coding Plan endpoint (`https://api.z.ai/api/coding/paas/v4`, or
 `OPENGROK_ZAI_API_BASE_URL` if set) and `env_key = "ZAI_API_KEY"`. RunInfra
 does the same with `https://api.runinfra.ai/v1` and `RUNINFRA_GATEWAY_KEY`.
@@ -123,6 +129,62 @@ Wafer does the same with `https://pass.wafer.ai/v1` and `WAFER_API_KEY`.
 OpenRouter does the same with `https://openrouter.ai/api/v1` and
 `OPENROUTER_API_KEY`. That keeps API-key-only providers from inheriting an
 empty or xAI endpoint.
+
+---
+
+## Custom endpoint wizard (`/provider`)
+
+If you have a server address and nothing else -- a company gateway, a local
+Ollama or vLLM server, a proxy, or an account on any OpenAI- or
+Anthropic-compatible host -- use the guided wizard instead of filling the form
+above. It asks for the address, reads that server's own model list, and writes
+only the models you pick.
+
+```
+/provider
+```
+
+`/provider add`, `/provider new`, `/providers`, and `/custom-provider` all open
+the same wizard. **Settings → Models → Add a custom provider...** opens it too.
+
+| Step | What you do |
+| --- | --- |
+| 1. Server address | Type the base URL, for example `https://gateway.example.com/v1` or `http://localhost:11434`. Open Grok adds `https://` when you leave the scheme off and adds `/v1` when the address has no path. Addresses that carry a user, password, query, or fragment are refused. |
+| 2. API key | Optional. Type the key for **this** server, or press Enter to skip. What you type is masked, never echoed, and never written to logs. Skipping keeps any `env_key` or environment credential for that model working, and works as-is for unauthenticated local servers. |
+| 3. Format | Pick the wire protocol the server speaks: `OpenAI Chat Completions`, `OpenAI Responses`, or `Anthropic Messages`. |
+| 4. Models | Open Grok calls `GET <address>/models` and shows what the server returned. Filter with `/` or plain typing, toggle with Space, toggle everything with `Ctrl+A`. Nothing is written until you press Enter, and pressing Enter with nothing selected saves nothing. |
+| 5. Done | A summary of how many models were written, plus any warning. |
+
+Each selected model becomes its own `[model.<key>]` table. The key is the host
+plus the model id, so one server's models group together and never collide with
+a built-in catalog entry. Open Grok quotes the key because it contains dots:
+
+```toml
+[model."gateway.example.com:claude-sonnet-4"]
+model = "claude-sonnet-4"
+name = "Claude Sonnet 4"
+provider = "custom"
+base_url = "https://gateway.example.com/v1"
+api_backend = "messages"
+auth_scheme = "x_api_key"
+context_window = 200000
+api_key = "sk-..."          # only when you typed a key
+```
+
+- `auth_scheme` decides the credential header: `bearer` sends
+  `Authorization: Bearer <key>`, `x_api_key` sends `x-api-key` plus
+  `anthropic-version`. The wizard sets it from the format you chose; edit it by
+  hand when a gateway wants something else (a LiteLLM-style proxy in front of
+  Anthropic usually wants `bearer`).
+- `provider = "custom"` means the address is yours. Open Grok never sends an
+  xAI, Codex, or other first-party credential to it, and it never follows a
+  redirect with your key attached -- the address you typed must answer
+  directly.
+- Model names and hosts select nothing on their own. The saved `api_backend`
+  and `auth_scheme` decide the protocol and header, so a model called
+  `gpt-5` on your host is still queried with the format you chose.
+- Esc cancels at any step and writes nothing. Shift+Tab (or Left) goes back one
+  step.
 
 ---
 

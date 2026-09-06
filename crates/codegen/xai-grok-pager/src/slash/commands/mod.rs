@@ -49,6 +49,7 @@ pub mod personas;
 pub mod plan;
 pub mod plugin;
 pub mod privacy;
+pub mod provider;
 pub mod queue;
 pub mod recap;
 pub mod release_notes;
@@ -88,6 +89,7 @@ pub fn builtin_commands() -> Vec<Arc<dyn SlashCommand>> {
     vec![
         Arc::new(tutorial::TutorialCommand),
         Arc::new(settings_cmd::SettingsCommand),
+        Arc::new(provider::ProviderCommand),
         Arc::new(dashboard::DashboardCommand),
         Arc::new(workflows::WorkflowsCommand),
         Arc::new(mission::MissionCommand),

@@ -127,6 +127,11 @@ pub struct CustomModelRecord {
     pub max_context_window: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub api_backend: Option<String>,
+    /// Credential header written by the custom-provider wizard: `bearer` or
+    /// `x_api_key`. Unset for entries that inherit a built-in provider, whose
+    /// identity already fixes the header.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth_scheme: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub env_key: Option<String>,
     #[serde(default)]
@@ -145,15 +150,29 @@ impl CustomModelRecord {
     pub fn description_line(&self) -> String {
         let provider = self.provider.as_deref().unwrap_or("inherit");
         let backend = self.api_backend.as_deref().unwrap_or("chat_completions");
+        // The credential header rides next to the backend: it is part of the
+        // endpoint identity, and a wrong one is the usual reason a custom
+        // server answers 401.
+        let auth = self
+            .auth_scheme
+            .as_deref()
+            .filter(|scheme| !scheme.trim().is_empty())
+            .map(|scheme| format!(" · {scheme}"))
+            .unwrap_or_default();
         if let Some(raw) = self.max_context_window {
             return format!(
-                "{} · {provider} · {backend} · {raw} raw context",
+                "{} · {provider} · {backend}{auth} · {raw} raw context",
                 self.model
             );
         }
         match self.context_window {
-            Some(window) => format!("{} · {provider} · {backend} · {window} ctx", self.model),
-            None => format!("{} · {provider} · {backend}", self.model),
+            Some(window) => {
+                format!(
+                    "{} · {provider} · {backend}{auth} · {window} ctx",
+                    self.model
+                )
+            }
+            None => format!("{} · {provider} · {backend}{auth}", self.model),
         }
     }
 }
@@ -483,6 +502,9 @@ pub struct PagerLocalSnapshot {
     pub custom_model_backend: String,
     pub custom_model_env_key: String,
     pub custom_model_save: bool,
+    /// Trigger row: Enter opens the custom-provider wizard. Never persisted;
+    /// the row always reads back as off.
+    pub custom_provider_wizard: bool,
     pub perplexity_web_search_enabled: bool,
     /// `[toolset.web_search_source]` selections (effective TOML merge).
     pub web_search_source: xai_grok_shell::tools::config::WebSearchSourceConfig,
@@ -581,6 +603,7 @@ impl Default for PagerLocalSnapshot {
             custom_model_backend: "chat_completions".to_owned(),
             custom_model_env_key: String::new(),
             custom_model_save: false,
+            custom_provider_wizard: false,
             perplexity_web_search_enabled: false,
             web_search_source: Default::default(),
             x_search_enabled: true,
@@ -1136,6 +1159,7 @@ pub fn current_value_for(
         ))),
         "custom_model_env_key" => Some(SettingValue::String(pager.custom_model_env_key.clone())),
         "custom_model_save" => Some(SettingValue::Bool(pager.custom_model_save)),
+        "custom_provider_wizard" => Some(SettingValue::Bool(pager.custom_provider_wizard)),
         "toolset.perplexity_web_search.enabled" => {
             Some(SettingValue::Bool(pager.perplexity_web_search_enabled))
         }
@@ -1998,9 +2022,11 @@ mod tests {
                     assert_eq!(*default, 0);
                     assert_eq!(pager.custom_model_max_context_window, 0);
                 }
-                ("custom_model_save", SettingKind::Bool { default }) => {
+                ("custom_model_save", SettingKind::Bool { default })
+                | ("custom_provider_wizard", SettingKind::Bool { default }) => {
                     assert!(!*default);
                     assert!(!pager.custom_model_save);
+                    assert!(!pager.custom_provider_wizard);
                 }
                 _ => panic!(
                     "settings::defs::default_settings() contains PAGER entry `{}` with no \
@@ -2481,6 +2507,7 @@ mod tests {
                 "custom_model_backend",
                 "custom_model_env_key",
                 "custom_model_save",
+                "custom_provider_wizard",
             ],
         );
         assert!(matches!(

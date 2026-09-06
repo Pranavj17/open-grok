@@ -1298,6 +1298,7 @@ pub(super) fn dispatch_dashboard_dispatch_slash(app: &mut AppView, text: String)
                 custom_model_backend: "chat_completions".to_owned(),
                 custom_model_env_key: String::new(),
                 custom_model_save: false,
+                custom_provider_wizard: false,
                 perplexity_web_search_enabled: app.perplexity_web_search_enabled,
                 web_search_source: xai_grok_shell::util::config::load_web_search_source_sync(),
                 x_search_enabled: xai_grok_shell::util::config::load_x_search_config_sync().enabled,

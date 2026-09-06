@@ -599,6 +599,7 @@ const CUSTOM_MODELS_CHILDREN: &[&str] = &[
     "custom_model_backend",
     "custom_model_env_key",
     "custom_model_save",
+    "custom_provider_wizard",
 ];
 
 pub(crate) const CUSTOM_MODEL_CONTEXT_WINDOW_MIN: i64 = 1_000;
@@ -610,6 +611,11 @@ const CUSTOM_MODEL_PROVIDER_CHOICES: &[EnumChoice] = &[
         canonical: "",
         display: "(inherit)",
         description: "Use the default provider for this catalog key.",
+    },
+    EnumChoice {
+        canonical: "custom",
+        display: "Custom endpoint",
+        description: "A server address you supplied (base_url plus an explicit auth_scheme).",
     },
     EnumChoice {
         canonical: "zai",
@@ -1695,6 +1701,19 @@ pub fn default_settings() -> Vec<SettingMeta> {
             label: "Save custom model",
             description: "Write the draft as [model.<key>] and refresh the catalog. Requires a catalog key and model id.",
             keywords: &["custom", "model", "save", "add", "upsert"],
+            kind: SettingKind::Bool { default: false },
+            restart_required: false,
+            hidden_in_minimal: false,
+        },
+        SettingMeta {
+            key: "custom_provider_wizard",
+            category: SettingCategory::Models,
+            owner: SettingOwner::Pager,
+            label: "Add a custom provider...",
+            description: "Point Open Grok at any OpenAI- or Anthropic-compatible server: enter the address, optionally a key, pick the wire format, and choose which models to keep.",
+            keywords: &[
+                "custom", "provider", "endpoint", "wizard", "base", "url", "add",
+            ],
             kind: SettingKind::Bool { default: false },
             restart_required: false,
             hidden_in_minimal: false,

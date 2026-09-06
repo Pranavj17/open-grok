@@ -241,6 +241,7 @@ pub(crate) fn refresh_open_settings_modals(app: &mut AppView) {
                 custom_model_backend: "chat_completions".to_owned(),
                 custom_model_env_key: String::new(),
                 custom_model_save: false,
+                custom_provider_wizard: false,
                 perplexity_web_search_enabled,
                 web_search_source,
                 x_search_enabled,
@@ -468,6 +469,7 @@ pub(in crate::app::dispatch) fn dispatch_open_settings(
         custom_model_backend: "chat_completions".to_owned(),
         custom_model_env_key: String::new(),
         custom_model_save: false,
+        custom_provider_wizard: false,
         perplexity_web_search_enabled: app.perplexity_web_search_enabled,
         web_search_source: xai_grok_shell::util::config::load_web_search_source_sync(),
         x_search_enabled: xai_grok_shell::util::config::load_x_search_config_sync().enabled,
@@ -1310,6 +1312,7 @@ pub(crate) fn build_pager_snapshot(app: &AppView) -> crate::settings::PagerLocal
         custom_model_backend: "chat_completions".to_owned(),
         custom_model_env_key: String::new(),
         custom_model_save: false,
+        custom_provider_wizard: false,
         perplexity_web_search_enabled: app.perplexity_web_search_enabled,
         web_search_source: xai_grok_shell::util::config::load_web_search_source_sync(),
         x_search_enabled: xai_grok_shell::util::config::load_x_search_config_sync().enabled,
@@ -1456,6 +1459,9 @@ pub(in crate::app::dispatch) fn action_for_reset(
             Some(Action::SetCustomModelEnvKey(s.clone()))
         }
         ("custom_model_save", SettingValue::Bool(b)) => Some(Action::SetCustomModelSave(*b)),
+        ("custom_provider_wizard", SettingValue::Bool(b)) => {
+            Some(Action::SetCustomProviderWizard(*b))
+        }
         (
             "toolset.web_search_source.xai"
             | "toolset.web_search_source.codex"

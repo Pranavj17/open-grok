@@ -2128,6 +2128,11 @@ fn move_setting_away_from_default(app: &mut AppView, key: crate::settings::Setti
         "custom_model_save" => {
             let _ = dispatch(Action::SetCustomModelSave(true), app);
         }
+        "custom_provider_wizard" => {
+            // A trigger row, not a stored value: moving it away from the
+            // default opens the guided custom-provider wizard.
+            let _ = dispatch(Action::SetCustomProviderWizard(true), app);
+        }
         "toolset.x_search.enabled" => {
             let _ = dispatch(Action::SetXSearchEnabled(false), app);
         }

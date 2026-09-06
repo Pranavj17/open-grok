@@ -1151,6 +1151,7 @@ pub(super) fn action_for_bool(key: SettingKey, new: bool) -> Option<Action> {
         "auto_update" => Some(Action::SetAutoUpdate(new)),
         "display_refresh_auto_cadence" => Some(Action::SetDisplayRefreshAutoCadence(new)),
         "custom_model_save" => Some(Action::SetCustomModelSave(new)),
+        "custom_provider_wizard" => Some(Action::SetCustomProviderWizard(new)),
         _ if crate::settings::is_local_feature_flag(key) => {
             Some(Action::SetLocalFeatureFlag { key, enabled: new })
         }

@@ -2014,6 +2014,10 @@ description = "keep this description"
         persist_custom_model_upserts_at(&path, std::slice::from_ref(&record)).unwrap();
         let written = std::fs::read_to_string(&path).unwrap();
         assert!(written.contains("auth_scheme = \"x_api_key\""), "{written}");
+        assert!(
+            written.contains("[model.\"gateway.example.com:claude-x\"]"),
+            "a dotted catalog key must land as one quoted table name: {written}"
+        );
         let parsed: TomlValue = toml::from_str(&written).unwrap();
         let entry: crate::agent::config::ConfigModelOverride = parsed
             .get("model")
