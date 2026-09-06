@@ -17,6 +17,10 @@ pub struct LocalFeatureFlagSpec {
 
 pub const LOCAL_FEATURE_FLAG_SPECS: &[LocalFeatureFlagSpec] = &[
     LocalFeatureFlagSpec {
+        key: "features.context_management.experimental_mode",
+        default: false,
+    },
+    LocalFeatureFlagSpec {
         key: "memory.enabled",
         default: false,
     },
@@ -603,6 +607,14 @@ pub async fn set_remember_tool_approvals(value: bool) -> Result<()> {
 /// Persist the restart-required `[ui].code_mode` override.
 pub async fn set_code_mode(value: crate::agent::config::ToolModePreference) -> Result<()> {
     update_config(|cfg| cfg.ui.code_mode = Some(value)).await
+}
+
+pub async fn set_codex_persistent_mode(value: bool) -> Result<()> {
+    update_config(|cfg| cfg.ui.codex_persistent_mode = Some(value)).await
+}
+
+pub async fn set_codex_guardian_review(value: bool) -> Result<()> {
+    update_config(|cfg| cfg.ui.codex_guardian_review = Some(value)).await
 }
 
 /// Persist the restart-required `[ui].image_generation_provider` route.

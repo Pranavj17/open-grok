@@ -138,6 +138,22 @@ Set reasoning effort on the **current** model without reselecting it. Levels are
 /effort high
 ```
 
+### `/provider [add]`
+
+Open the guided custom-provider wizard: type a server address, optionally a key
+for that server, choose the wire format (OpenAI Chat Completions, OpenAI
+Responses, or Anthropic Messages), then pick which of that server's models to
+keep. Aliases: `/providers`, `/custom-provider`; `add` and `new` are accepted so
+`/provider add` reads naturally. Nothing is written until you confirm the model
+list, and `Esc` at any step cancels without touching config. The saved rows are
+ordinary `[model.*]` tables with `provider = "custom"` -- see
+[Custom Models](11-custom-models.md#custom-endpoint-wizard-provider).
+
+```
+/provider
+/provider add
+```
+
 ### `/always-approve`, `/yolo-2`, and `/auto`
 
 These are real toggles for the permission mode: they stay in the menu, and running the mode you're already in turns it back off.
